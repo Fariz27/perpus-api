@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" name="viewport">
+  <title>Admin |</title>
+
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/bootstrap-vue.min.css">
+  <link rel="stylesheet" href="../template/modules/ionicons/css/ionicons.min.css">
+  <link rel="stylesheet" href="../template/modules/fontawesome/web-fonts-with-css/css/fontawesome-all.min.css">
+
+  <link rel="stylesheet" href="../template/modules/summernote/summernote-lite.css">
+  <link rel="stylesheet" href="../template/modules/flag-icon-css/css/flag-icon.min.css">
+  <link rel="stylesheet" href="../template/css/demo.css">
+  <link rel="stylesheet" href="../template/css/style.css">
+</head>
+
+<body>
+  <div id="app">
+    <div class="main-wrapper">
+      <div class="navbar-bg"></div>
+      <nav class="navbar navbar-expand-lg main-navbar">
+        <form class="form-inline mr-auto">
+          <ul class="navbar-nav mr-3">
+            <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="ion ion-navicon-round"></i></a></li>
+            <li><a href="#" data-toggle="search" class="nav-link nav-link-lg d-sm-none"><i class="ion ion-search"></i></a></li>
+          </ul>
+          <div class="search-element">
+            <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn" type="submit"><i class="ion ion-search"></i></button>
+          </div>
+        </form>
+        
+      </nav>
+      <div class="main-sidebar">
+        <aside id="sidebar-wrapper">
+          <div class="sidebar-brand">
+            <a href="index.html">Stisla Lite</a>
+          </div>
+          <div class="sidebar-user">
+            <div class="sidebar-user-picture">
+              <img alt="image" src="../template/img/avatar/avatar-1.jpeg">
+            </div>
+            <div class="sidebar-user-details">
+              <div class="user-name">Ujang Maman</div>
+              <div class="user-role">
+                Administrator
+              </div>
+            </div>
+          </div>
+          <ul class="sidebar-menu">
+            <li class="menu-header">Dashboard</li>
+            <li class="active">
+              <router-link to="/"><i class="ion ion-speedometer"></i><span>Dashboard</span></router-link>
+            </li>
+
+            <li class="menu-header">Components</li>
+            <li>
+              <a href="#" class="has-dropdown"><i class="ion ion-ios-albums-outline"></i><span>Master</span></a>
+              <ul class="menu-dropdown">
+                <li><router-link to="/buku"><i class="ion ion-ios-circle-outline"></i> Buku</router-link></li>
+                <li><router-link to="/member"><i class="ion ion-ios-circle-outline"></i> Member</router-link></li>
+              </ul>
+            </li>
+
+            <li class="menu-header">Profile</li>
+            <li>
+              <b-nav-item @click="Logout">
+                  <i class="ion ion-log-out"></i><span>Logout</span>
+              </b-nav-item>
+            </li>
+
+        </aside>
+      </div>
+      
+      <div class="main-content">
+        <router-view></router-view>  
+      </div>
+      
+      <footer class="main-footer">
+        <div class="footer-left">
+          Copyright &copy; 2018 <div class="bullet"></div> Design By <a href="https://multinity.com/">Multinity</a>
+        </div>
+        <div class="footer-right"></div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../js/polyfill.min.js"></script>
+  <script src="../js/vue.min.js"></script>
+  <script src="../js/bootstrap-vue.min.js"></script>
+  <script src="../js/vue-router.js"></script>
+  <script src="../js/vue-cookies.js"></script>
+  <script src="../js/http-vue-loader.js"></script>
+  <script src="../js/axios.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.0.5/vee-validate.full.min.js"></script>
+  <script type="text/javascript">
+      var router = [
+        { path: "/", name: "Home", component: httpVueLoader("dashboard.vue")},
+        { path: "/buku", name: "Buku", component: httpVueLoader("buku.vue")},
+        { path: "/member", name: "Member", component: httpVueLoader("member.vue")},
+      ];
+
+      var routers = new VueRouter({ routes : router, base: "/user"});
+      var base_url = "http://localhost/api_lumen/public";
+      var app = new Vue({
+        el: "#app",
+        data: {
+          user : {
+            name: "",
+            is_admin: ""
+          }
+        },
+        router: routers,
+        methods: {
+          authenticate : function(){
+            if(!this.$cookies.isKey("Api-Token")){
+              window.location = "../login.html";
+            } else {
+              let token = this.$cookies.get("Api-Token");
+              let form = new FormData();
+              form.append("token", token);
+              axios.post(base_url + "/auth/check", form)
+              .then(response => {
+                if(response.data.auth == false){
+                  window.location = "../login.html";
+                }
+              })
+              .catch(error => {
+                console.log(error);
+              })
+            }
+          },
+          
+          Logout : function(){
+            this.$cookies.remove("Api-Token");
+            window.location = "../login.html";
+          },
+
+          init_user : function(){
+            if(!this.$cookies.isKey("Api-Token")){
+              window.location = "../login.html";
+            } else {
+              let token = this.$cookies.get("Api-Token");
+              let form = new FormData();
+              form.append("token", token);
+              axios.post(base_url + "/auth/check", form)
+              .then(response => {
+                if(response.data.auth == false){
+                  window.location = "../login.html";
+                } else {
+                  this.user.name = response.data.user.name;
+                  this.user.is_admin = response.data.user.is_admin;
+                }
+              })
+              .catch(error => {
+                console.log(error);
+              })
+            }
+          },
+
+          mounted(){
+            this.authenticate();
+            this.init_user();
+          }
+
+        }
+      });
+  </script>
+  <script src="../template/modules/jquery.min.js"></script>
+  <script src="../template/modules/popper.js"></script>
+  <script src="../template/modules/tooltip.js"></script>
+  <script src="../template/modules/bootstrap/js/bootstrap.min.js"></script>
+  <script src="../template/modules/nicescroll/jquery.nicescroll.min.js"></script>
+  <script src="../template/modules/scroll-up-bar/dist/scroll-up-bar.min.js"></script>
+  <script src="../template/js/sa-functions.js"></script>
+  
+  
+
+  
+  <script src="../template/js/scripts.js"></script>
+  <script src="../template/js/custom.js"></script>
+  <script src="../template/js/demo.js"></script>
+</body>
+</html>

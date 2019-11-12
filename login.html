@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" name="viewport">
+  <title>Login</title>
+
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/bootstrap-vue.min.css">
+  <link rel="stylesheet" href="template/modules/ionicons/css/ionicons.min.css">
+  <link rel="stylesheet" href="template/modules/fontawesome/web-fonts-with-css/css/fontawesome-all.min.css">
+
+  <link rel="stylesheet" href="template/css/demo.css">
+  <link rel="stylesheet" href="template/css/style.css">
+</head>
+
+<body>
+  <div id="app">
+    <section class="section">
+      <div class="container mt-5">
+        <div class="row">
+          <div class="col-12 col-sm-8 offset-sm-2 col-md-6 offset-md-3 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4">
+            <div class="login-brand">
+              PERPUS 4.0
+            </div>
+
+            <div class="card card-primary">
+              <div class="card-header"><h4>Login</h4></div>
+
+              <div class="card-body">
+                <form v-on:submit.prevent="Login" class="needs-validation">
+                    <b-alert :variant="type" :show="show">
+                        <b-spinner v-if="spin" label="Spinning" variant="success" small></b-spinner>
+                        {{ message }}
+                    </b-alert>
+
+                    <b-form-group
+                        label="Email"
+                        label-for="email">
+                        <b-form-input
+                            id="email"
+                            v-model="email"
+                            placeholder="Email"
+                            class="form-control"
+                            required
+                            autofocus
+                            tabindex="1">
+                        </b-form-input>
+                    </b-form-group>
+
+                    <b-form-group
+                        label="Password"
+                        label-for="password">
+                        <b-form-input
+                            id="password"
+                            v-model="password"
+                            type="password"
+                            placeholder="Password"
+                            class="form-control"
+                            required
+                            tabindex="2">
+                        </b-form-input>
+                    </b-form-group>
+
+                    <b-button type="submit" class="btn btn-primary btn-block" tabindex="4" pill>Login</b-button>
+                  
+                </form>
+              </div>
+            </div>
+           
+            <div class="simple-footer">
+              Copyright &copy; Fariz Akbar 2019
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="js/polyfill.min.js"></script>
+  <script src="js/vue.min.js"></script>
+  <script src="js/bootstrap-vue.min.js"></script>
+  <script src="js/vue-router.js"></script>
+  <script src="js/vue-cookies.js"></script>
+  <script src="js/http-vue-loader.js"></script>
+  <script src="js/axios.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.0.5/vee-validate.full.min.js"></script>
+  <script>
+      var base_url = "http://localhost/api_perpus/public/api";
+      var app = new Vue({
+          el: "#app",
+          data: {
+              email: "",
+              password: "",
+              message: "Mohon tunggu...",
+              type: "secondary",
+              show: false,
+              spin: false,
+          },
+          methods: {
+              authenticate : function(){
+                if(this.$cookies.isKey("Authorization")){
+                  let conf = { headers : {"Authorization" : "Bearer " + this.$cookies.get("Authorization")} };
+                  axios.get(base_url + "/user/check", conf)
+                  .then(response => {
+                    if(response.data.auth == true){
+                      window.location = "user/index.html";
+                    }
+                  })
+                  .catch(error => {
+                    console.log(error);
+                  });
+                }
+              },
+              Login: function(){
+                  this.show = true;
+                  this.spin = true;
+                  this.message = "Mohon tunggu...";
+                  let form = new FormData();
+                  form.append("email", this.email);
+                  form.append("password", this.password);
+                  axios.post(base_url + "/login", form)
+                  .then(response => {
+                    this.spin = false;
+                    let logged = response.data.logged;
+                    
+                    if(logged){
+                        if(this.$cookies.isKey("Authorization")){
+                            this.$cookies.remove("Authorization");
+                        }
+                        this.$cookies.set("Authorization", response.data.token);
+                        this.type = "success";
+                        this.message = "Berhasil login";
+                        window.location = "user/index.html";
+                    } else {
+                        this.type = "danger";
+                        this.message = "email atau password salah";
+                    }
+                  })
+                  .catch(error => {
+                      console.log(error);
+                  });
+              }
+          },
+          mounted(){
+              //this.authenticate();
+          }
+      });
+  </script>
+  <script src="template/modules/jquery.min.js"></script>
+  <script src="template/modules/popper.js"></script>
+  <script src="template/modules/tooltip.js"></script>
+  <script src="template/modules/bootstrap/js/bootstrap.min.js"></script>
+  <script src="template/modules/nicescroll/jquery.nicescroll.min.js"></script>
+  <script src="template/modules/scroll-up-bar/dist/scroll-up-bar.min.js"></script>
+  <script src="template/js/sa-functions.js"></script>
+  
+  <script src="template/js/scripts.js"></script>
+  <script src="template/js/custom.js"></script>
+  <script src="template/js/demo.js"></script>
+</body>
+</html>
